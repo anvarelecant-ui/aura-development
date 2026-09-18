@@ -624,6 +624,13 @@ class AIConsultant {
   }
 
   stopSpeaking() {
+    if (this.currentAudioPlayer) {
+      try {
+        this.currentAudioPlayer.pause();
+        this.currentAudioPlayer.currentTime = 0;
+      } catch(e) {}
+      this.currentAudioPlayer = null;
+    }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
@@ -1024,11 +1031,12 @@ class AIConsultant {
     // Greet user with voice, then AUTOMATICALLY open the microphone for natural conversation!
     const stateLabels = this.getLocalizedStateLabels();
     this.setCallState('speaking', stateLabels.speaking || 'AURA говорит...');
+    const welcomeAudio = `assets/audio/welcome_${this.currentLang}.mp3`;
     this.speakVoiceCall(welcome, () => {
       if (this.isInCall) {
         this.startCallListening();
       }
-    });
+    }, welcomeAudio);
   }
 
   endVoiceCall() {
@@ -1160,7 +1168,7 @@ class AIConsultant {
       if (response.ok) {
         const data = await response.json();
         if (data && data.reply) {
-          this.handleCallBotReply(data.reply);
+          this.handleCallBotReply(data.reply, data.audio);
           return;
         }
       }
@@ -1173,7 +1181,7 @@ class AIConsultant {
     this.handleCallBotReply(fallback);
   }
 
-  handleCallBotReply(replyText) {
+  handleCallBotReply(replyText, audioSrc = null) {
     if (!this.isInCall) return;
 
     this.callHistory.push({ sender: 'bot', text: replyText });
@@ -1188,10 +1196,54 @@ class AIConsultant {
       if (this.isInCall) {
         this.startCallListening();
       }
-    });
+    }, audioSrc);
   }
 
-  speakVoiceCall(text, onComplete) {
+  speakVoiceCall(text, onComplete, audioSrc = null) {
+    this.stopSpeaking();
+
+    // 1. Check if direct audio or pre-rendered neural audio file is available
+    let soundSrc = audioSrc;
+    if (!soundSrc) {
+      soundSrc = this.getPreRenderedAudio(text, this.currentLang);
+    }
+
+    if (soundSrc) {
+      try {
+        const audio = new Audio(soundSrc);
+        this.currentAudioPlayer = audio;
+        this.isSpeaking = true;
+
+        audio.onended = () => {
+          this.isSpeaking = false;
+          this.currentAudioPlayer = null;
+          if (onComplete) onComplete();
+        };
+
+        audio.onerror = (e) => {
+          console.warn('Neural audio playback failed, falling back to browser speech:', e);
+          this.currentAudioPlayer = null;
+          this.speakBrowserVoice(text, onComplete);
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('Audio play prevented, fallback to browser speech:', err);
+            this.speakBrowserVoice(text, onComplete);
+          });
+        }
+        return;
+      } catch (err) {
+        console.warn('Error creating audio player:', err);
+      }
+    }
+
+    // 2. Fallback to browser speech synthesis
+    this.speakBrowserVoice(text, onComplete);
+  }
+
+  speakBrowserVoice(text, onComplete) {
     if (!('speechSynthesis' in window)) {
       if (onComplete) onComplete();
       return;
@@ -1200,7 +1252,7 @@ class AIConsultant {
     window.speechSynthesis.cancel();
     const clean = this.cleanTextForSpeech(text);
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.rate = 1.05;
+    utterance.rate = 0.95;
     utterance.pitch = 1.0;
     this.selectVoiceForLanguage(utterance);
 
@@ -1217,6 +1269,100 @@ class AIConsultant {
     };
 
     window.speechSynthesis.speak(utterance);
+  }
+
+  selectVoiceForLanguage(utterance) {
+    if (!('speechSynthesis' in window)) return;
+    const voices = window.speechSynthesis.getVoices() || [];
+    if (!voices.length) return;
+
+    const lang = this.currentLang || 'ru';
+    let targetLangCode = 'ru-RU';
+    if (lang === 'uz') targetLangCode = 'uz-UZ';
+    else if (lang === 'en') targetLangCode = 'en-US';
+
+    utterance.lang = targetLangCode;
+    let voice = voices.find(v => v.lang === targetLangCode);
+    if (!voice && lang === 'uz') {
+      voice = voices.find(v => v.lang.startsWith('uz')) || voices.find(v => v.lang.startsWith('tr'));
+    }
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith(lang));
+    }
+    if (voice) {
+      utterance.voice = voice;
+    }
+  }
+
+  getPreRenderedAudio(text, lang = 'ru') {
+    const t = (text || '').toLowerCase();
+    const l = lang || this.currentLang || 'ru';
+    let key = null;
+
+    if (t.includes('приветствоват') || t.includes('xush kelibsiz') || t.includes('welcome to aura') || t.includes('добро пожаловать') || t.includes('assalomu alaykum')) {
+      key = 'welcome';
+    } else if (t.includes('рассрочк') || t.includes('muddatli') || t.includes('installment') || t.includes('ипотек') || t.includes('ipoteka') || t.includes('0%')) {
+      key = 'installment';
+    } else if (t.includes('калькулятор') || t.includes('kalkulyator') || t.includes('аудит') || t.includes('audit')) {
+      key = 'calc';
+    } else if (t.includes('цен') || t.includes('narx') || t.includes('price') || t.includes('стоим') || t.includes('бюджет') || t.includes('qiymat')) {
+      key = 'price';
+    } else if (t.includes('материал') || t.includes('seysmik') || t.includes('b35') || t.includes('инженер') || t.includes('sifat') || t.includes('shisha') || t.includes('oyna')) {
+      key = 'quality';
+    } else if (t.includes('skyline')) {
+      key = 'skyline';
+    } else if (t.includes('pinecrest')) {
+      key = 'pinecrest';
+    } else if (t.includes('lumen')) {
+      key = 'lumen';
+    }
+
+    if (key) {
+      return `assets/audio/${key}_${l}.mp3`;
+    }
+    return null;
+  }
+
+  getLocalizedCallWelcome() {
+    if (this.currentLang === 'uz') {
+      return '«Assalomu alaykum! AURA Development kompaniyasining ovozli maslahatchisi xizmatingizda. Qaysi loyihamiz haqida ma\'lumot beray?»';
+    } else if (this.currentLang === 'en') {
+      return '«Hello and welcome to AURA Development. I am your personal real estate advisor. Which landmark shall we explore today?»';
+    }
+    return '«Здравствуйте! Рада приветствовать вас в AURA Development. О каком объекте вам рассказать подробнее?»';
+  }
+
+  getLocalizedStateLabels() {
+    if (this.currentLang === 'uz') {
+      return {
+        listening: "Sizni tinglayapman... Gapiring",
+        thinking: "AURA o'ylamoqda...",
+        speaking: "AURA gapirmoqda...",
+        idle: "Qo'ng'iroqqa tayyor",
+        muted: "Mikrofon o'chirilgan"
+      };
+    } else if (this.currentLang === 'en') {
+      return {
+        listening: "Listening to you... Speak now",
+        thinking: "AURA is thinking...",
+        speaking: "AURA is speaking...",
+        idle: "Ready for call",
+        muted: "Microphone muted"
+      };
+    }
+    return {
+      listening: "Слушаю вас... Говорите",
+      thinking: "AURA думает...",
+      speaking: "AURA говорит...",
+      idle: "Готов к разговору",
+      muted: "Микрофон отключен"
+    };
+  }
+
+  getRecognitionLang() {
+    if (this.currentLang === 'uz') return 'uz-UZ';
+    if (this.currentLang === 'en') return 'en-US';
+    return 'ru-RU';
   }
 
   setCallState(state, label) {
@@ -1260,33 +1406,55 @@ class AIConsultant {
     if (this.currentLang === 'uz' || q.includes('qancha') || q.includes('narxi') || q.includes('loyiha') || q.includes('salom')) {
       if (q.includes('narx') || q.includes('qancha') || q.includes('qiymat')) {
         return 'Skyline Towers loyihamizda narxlar yigirma sakkiz yarim million rubldan, Pinecrest villalari esa sakson besh million rubldan boshlanadi. Qaysi loyiha sizga ma\'qul?';
-      } else if (q.includes('villa') || q.includes('o\'rmon') || q.includes('hovuz')) {
-        return 'Pinecrest villalari qarag\'ay o\'rmonida joylashgan bo\'lib, o\'zining isitiladigan basseyniga ega. Uylar to\'liq tayyor. Ko\'rish uchun ro\'yxatdan o\'tmoqchimisiz?';
-      } else if (q.includes('bo\'lib') || q.includes('to\'lov') || q.includes('foizsiz')) {
-        return 'Bizda 36 oygacha 0 foizli foizsiz muddatli to\'lov va 4.8 foizli imtiyozli ipoteka mavjud. Shaxsiy jadval hisoblab beraymi?';
+      } else if (q.includes('villa') || q.includes('o\'rmon') || q.includes('hovuz') || q.includes('pinecrest')) {
+        return 'Pinecrest villalari qarag\'ayzor ichida joylashgan bo\'lib, o\'zining isitiladigan basseyni va spa majmuasiga ega. Uylar to\'liq tayyor. Ko\'rish uchun ro\'yxatdan o\'tmoqchimisiz?';
+      } else if (q.includes('bo\'lib') || q.includes('to\'lov') || q.includes('foizsiz') || q.includes('ipoteka') || q.includes('muddatli')) {
+        return 'Bizda o\'ttiz olti oygacha nol foizli muddatli to\'lov va to\'rt butun o\'ndan sakkiz foizli imtiyozli ipoteka mavjud. Shaxsiy hisob-kitob qilib beraymi?';
+      } else if (q.includes('skyline') || q.includes('minora') || q.includes('bino')) {
+        return 'Skyline Towers — daryo bo\'yida qad rostlagan ellik ikki qavatli osmono\'par bino. Unda panoramali qishki bog\'lar va o\'ttizinchi qavatda osma basseyn mavjud. Rejalarni ko\'rishni xohlaysizmi?';
+      } else if (q.includes('lumen')) {
+        return 'Lumen Residence — klub shaklidagi kam qavatli bino. Har bir xonadonda shaxsiy terrasalar, kaminlar va aqlli uy tizimi mavjud.';
+      } else if (q.includes('sifat') || q.includes('material') || q.includes('shisha') || q.includes('beton')) {
+        return 'Binolarimizda B35 markali zilzilabardosh beton, Guardian Glass akustik oynalari va Kone tezyurar aqlli liftlari o\'rnatilgan. Barcha muhandislik yevropa standartlariga javob beradi.';
+      } else if (q.includes('kalkulyator') || q.includes('hisob')) {
+        return 'Ipoteka va investitsiya kalkulyatori dastlabki to\'lov, oylik to\'lov hamda yillik kapitallashuvni aniq hisoblab beradi. Uni ochib beraymi?';
       }
       return 'AURA Development nufuzli turar-joy majmualari va hashamatli villalar quradi. Skyline Towers yoki Pinecrest villalari haqida gapirib beraymi?';
     }
 
     if (this.currentLang === 'en' || q.includes('price') || q.includes('cost') || q.includes('how much') || q.includes('hello')) {
-      if (q.includes('price') || q.includes('cost') || q.includes('how much')) {
+      if (q.includes('price') || q.includes('cost') || q.includes('how much') || q.includes('budget')) {
         return 'Prices at Skyline Towers start from 28.5 million rubles, while Pinecrest Forest Villas start from 85 million. Which project aligns with your lifestyle?';
       } else if (q.includes('villa') || q.includes('pinecrest') || q.includes('forest') || q.includes('pool')) {
         return 'Pinecrest Villas are located in a pristine pine forest with private heated infinity pools. Would you like to schedule a private viewing?';
-      } else if (q.includes('installment') || q.includes('mortgage') || q.includes('0%')) {
+      } else if (q.includes('installment') || q.includes('mortgage') || q.includes('0%') || q.includes('financing')) {
         return 'We offer a zero percent interest developer installment plan for up to 36 months. Would you like a personalized calculation?';
+      } else if (q.includes('skyline') || q.includes('tower')) {
+        return 'Skyline Towers is a 52-story waterfront landmark featuring panoramic winter gardens and an infinity pool on the 30th floor. Would you like to review floor plans?';
+      } else if (q.includes('lumen')) {
+        return 'Lumen Residence is an exclusive boutique club house featuring private garden terraces, natural fireplaces, and bespoke smart home automation.';
+      } else if (q.includes('quality') || q.includes('material') || q.includes('glass') || q.includes('engineering')) {
+        return 'We build with B35 seismic-resistant concrete, Guardian Glass acoustic facades, and high-speed Kone smart elevators conforming to highest European standards.';
+      } else if (q.includes('calculator') || q.includes('calc')) {
+        return 'Our financial audit calculator computes your down payment, monthly installments, and estimated capitalization. Shall I open it for you?';
       }
       return 'AURA Development builds iconic architectural landmarks and private forest estates. Shall I tell you more about Skyline Towers or Pinecrest Villas?';
     }
 
-    if (q.includes('цен') || q.includes('стоим') || q.includes('скольк')) {
+    if (q.includes('цен') || q.includes('стоим') || q.includes('скольк') || q.includes('бюджет')) {
       return 'Цены в Skyline Towers начинаются от 28.5 миллионов рублей, а загородные виллы в бору Pinecrest от 85 миллионов. Под какой бюджет подбираем резиденцию?';
-    } else if (q.includes('вилл') || q.includes('дом') || q.includes('pinecrest') || q.includes('лес')) {
+    } else if (q.includes('вилл') || q.includes('дом') || q.includes('pinecrest') || q.includes('лес') || q.includes('пайн')) {
       return 'Виллы Pinecrest расположены в реликтовом сосновом бору, площадь от 420 метров с персональным бассейном и спа. Дома уже сданы. Хотите записаться на закрытый просмотр?';
-    } else if (q.includes('skyline') || q.includes('жк') || q.includes('башн')) {
-      return 'Skyline Towers — это 52 этажа на набережной с панорамными садами и бассейном на 30 этаже. Сдача в 2026 году. Показать вам планировки?';
-    } else if (q.includes('рассрочк') || q.includes('ипотек') || q.includes('0%')) {
+    } else if (q.includes('рассрочк') || q.includes('ипотек') || q.includes('0%') || q.includes('услови')) {
       return 'У нас действует беспроцентная рассрочка на 36 месяцев без переплат от застройщика и субсидированная ставка от 4.8%. Рассчитать персональный график платежей?';
+    } else if (q.includes('skyline') || q.includes('скайлайн') || q.includes('башн')) {
+      return 'Skyline Towers — это 52 этажа на набережной с панорамными садами и бассейном на 30 этаже. Сдача в 2026 году. Показать вам планировки?';
+    } else if (q.includes('lumen') || q.includes('люмен') || q.includes('клубн')) {
+      return 'Клубный дом Lumen Residence — это приватный особняк на 24 резиденции с каминами, приватными террасами и консьерж-сервисом мирового уровня.';
+    } else if (q.includes('материал') || q.includes('качеств') || q.includes('стекл') || q.includes('инженер')) {
+      return 'Мы используем сейсмостойкий монолит B35, панорамное шумоподавляющее остекление Guardian Glass и бесшумные лифты Kone по высшим европейским стандартам.';
+    } else if (q.includes('калькулятор') || q.includes('расчет') || q.includes('посчит')) {
+      return 'Наш интерактивный калькулятор точно рассчитает первоначальный взнос, ежемесячный платеж и прогнозируемую доходность. Открыть калькулятор?';
     }
     return 'Компания AURA строит флагманские жилые комплексы и премиальные виллы. Рассказать о башнях Skyline Towers или лесных виллах в сосновом бору?';
   }

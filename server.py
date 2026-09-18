@@ -1,9 +1,47 @@
 import os
 import json
 import re
+import base64
+import asyncio
 import urllib.request
 import urllib.error
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+
+try:
+    import edge_tts
+    HAS_EDGE_TTS = True
+except ImportError:
+    HAS_EDGE_TTS = False
+
+VOICE_CONFIG = {
+    'uz': ('uz-UZ-MadinaNeural', '-4%'),
+    'ru': ('ru-RU-SvetlanaNeural', '-4%'),
+    'en': ('en-US-AvaNeural', '-4%')
+}
+
+def generate_neural_audio_base64(text, lang='ru'):
+    if not HAS_EDGE_TTS or not text:
+        return None
+    try:
+        voice, rate = VOICE_CONFIG.get(lang, VOICE_CONFIG['ru'])
+        clean = re.sub(r'[*#_`•«»]', '', text)
+        clean = re.sub(r'\s{2,}', ' ', clean).strip()
+        if not clean:
+            return None
+        
+        async def _synth():
+            comm = edge_tts.Communicate(clean, voice, rate=rate)
+            audio_bytes = bytearray()
+            async for chunk in comm.stream():
+                if chunk['type'] == 'audio':
+                    audio_bytes.extend(chunk['data'])
+            return base64.b64encode(audio_bytes).decode('utf-8')
+            
+        b64 = asyncio.run(_synth())
+        return f"data:audio/mp3;base64,{b64}"
+    except Exception as e:
+        print("Neural TTS error:", e)
+        return None
 
 PORT = 8088
 DIR = os.path.dirname(os.path.abspath(__file__))
@@ -114,7 +152,11 @@ class AuraRequestHandler(SimpleHTTPRequestHandler):
                 response_text = self.generate_llm_response(user_msg, history, mode, lang)
                 card = self.detect_relevant_card(user_msg)
                 
-                resp = json.dumps({'reply': response_text, 'card': card}, ensure_ascii=False)
+                audio_b64 = None
+                if mode == 'voice_call':
+                    audio_b64 = generate_neural_audio_base64(response_text, lang)
+                
+                resp = json.dumps({'reply': response_text, 'card': card, 'audio': audio_b64}, ensure_ascii=False)
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
@@ -388,9 +430,21 @@ class AuraRequestHandler(SimpleHTTPRequestHandler):
 
 def run():
     server_address = ('', PORT)
-    httpd = HTTPServer(server_address, AuraRequestHandler)
+    httpd = ThreadingHTTPServer(server_address, AuraRequestHandler)
     print(f"AURA Server running on http://localhost:{PORT}")
-    httpd.serve_forever()
+    try:
+        while True:
+            try:
+                httpd.serve_forever()
+            except Exception as ex:
+                print("Server worker notice:", ex)
+    except (KeyboardInterrupt, SystemExit):
+        print("AURA Server stopped.")
+    finally:
+        try:
+            httpd.server_close()
+        except Exception:
+            pass
 
 if __name__ == '__main__':
     run()
