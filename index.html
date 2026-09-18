@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AURA DEVELOPMENT — Премиальные жилые комплексы, клубные дома и виллы</title>
+  <meta name="description" content="AURA Development — флагманский девелопер элитной жилой недвижимости. Строительство современных небоскребов, клубных резиденций и частных вилл с панорамным остеклением и инновационной инженерией.">
+  <meta name="keywords" content="девелопер, элитная недвижимость, купить виллу, жилой комплекс, жк, пентхаус, архитектура, рассрочка 0%">
+  
+  <!-- Google Fonts: Swiss Grotesk & Editorial Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css?v=7.0">
+  <link rel="stylesheet" href="css/construction-timelapse.css?v=7.0">
+  <link rel="stylesheet" href="css/ai-chat.css?v=7.0">
+</head>
+<body>
+
+  <!-- Site Navigation Header -->
+  <header class="site-header" id="site-header">
+    <div class="container header-container">
+      <a href="#hero" class="brand-logo" id="header-brand-logo">
+        <div class="brand-monogram">A</div>
+        <div class="brand-text">
+          <span class="brand-name">A U R A</span>
+          <span class="brand-sub">DEVELOPMENT</span>
+        </div>
+      </a>
+
+      <nav class="site-nav">
+        <ul class="nav-menu" id="nav-menu-list">
+          <li><a href="#construction-timelapse-section" class="nav-link">Строительство</a></li>
+          <li><a href="#projects-section" class="nav-link">Каталог объектов</a></li>
+          <li><a href="#standards-section" class="nav-link">Инженерия & BIM</a></li>
+          <li><a href="#calc-section" class="nav-link">Ипотека & 0%</a></li>
+          <li><a href="#about-section" class="nav-link">О девелопере</a></li>
+          <li><a href="#contact-section" class="nav-link">Контакты</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn-header-cta" onclick="window.openBookingModal('Консультация с архитектором')">
+          <span>Записаться на показ</span>
+        </button>
+        <button class="btn-card-ai" onclick="window.aiConsultant.toggleChat(true)" title="Открыть диалог с искусственным интеллектом">
+          <i data-lucide="sparkles"></i>
+          <span>ИИ-Консультант</span>
+        </button>
+        <button class="btn-card-ai btn-call-pulse" onclick="window.aiConsultant.startVoiceCall()" title="Начать живой голосовой разговор с ИИ">
+          <i data-lucide="phone-call"></i>
+          <span>Голосовой звонок</span>
+        </button>
+        <button class="mobile-toggle" id="mobile-menu-toggle" aria-label="Открыть меню">
+          <i data-lucide="menu"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="hero">
+    <div class="hero-bg-visual"></div>
+    <div class="container">
+      <div class="hero-content-box">
+        <div class="hero-kicker-badge">
+          <span class="pulse-dot"></span>
+          <span>ПРЕМИАЛЬНЫЙ ДЕВЕЛОПМЕНТ ЖИЛОЙ НЕДВИЖИМОСТИ // 2026</span>
+        </div>
+
+        <h1 class="hero-main-title">
+          Архитектура будущего. <br>
+          <span class="title-gold">Пространства</span> для поколений.
+        </h1>
+
+        <p class="hero-description">
+          Проектируем и возводим знаковые многоэтажные жилые комплексы, клубные дома на первой линии и приватные загородные виллы. Монолитные технологии, бельгийское панорамное остекление Reynaers и эталонная акустическая тишина.
+        </p>
+
+        <div class="hero-actions-row">
+          <a href="#projects-section" class="btn-primary-action">
+            <span>Выбрать резиденцию</span>
+            <i data-lucide="arrow-right"></i>
+          </a>
+          <a href="#construction-timelapse-section" class="btn-outline-action">
+            <i data-lucide="play-circle"></i>
+            <span>Смотреть рождение объекта (Скролл)</span>
+          </a>
+          <button class="btn-outline-action btn-call-hero" onclick="window.aiConsultant.startVoiceCall()" title="Начать интерактивный голосовой звонок с архитектором">
+            <i data-lucide="phone-call"></i>
+            <span>Живое голосовое общение</span>
+          </button>
+        </div>
+
+        <!-- 4-Column Balanced Metrics Grid (Swiss Restraint) -->
+        <div class="hero-stats-grid">
+          <div class="stat-box">
+            <span class="stat-number">18+</span>
+            <span class="stat-label">Лет создания авторской премиальной архитектуры</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number">1.45M</span>
+            <span class="stat-label">Квадратных метров реализованных пространств</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">Ввода объектов строго в заявленный срок</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-number">24</span>
+            <span class="stat-label">Международные премии (WAF, Luxury Living Awards)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- THE SCROLL-DRIVEN CONSTRUCTION TIMELAPSE (ИНТЕРАКТИВНОЕ ВОЗВЕДЕНИЕ)       -->
+  <!-- ========================================================================= -->
+  <section id="construction-timelapse-section">
+    <div class="timelapse-header-intro">
+      <div class="timelapse-intro-text">
+        <div class="timelapse-kicker">
+          <span class="pulse-dot"></span>
+          <span>ИНЖЕНЕРНЫЙ ТАЙМЛАПС СТРОИТЕЛЬСТВА // SCROLL-DRIVEN ENGINE</span>
+        </div>
+        <h2 class="timelapse-title">Поэтапное рождение объекта: <br>от скального грунта до шедевра</h2>
+        <p class="timelapse-desc-lead">
+          Управляйте возведением здания простым скроллом страницы. Наблюдайте, как шаг за шагом формируются котлован, монолитные пилоны, панорамный фасад и вечерняя световая композиция.
+        </p>
+      </div>
+
+      <div class="timelapse-scroll-indicator">
+        <i data-lucide="chevrons-down"></i>
+        <span>Крутите колесо мыши вниз</span>
+      </div>
+    </div>
+
+    <!-- Pinned Scroll Track for Sticky Viewport -->
+    <div id="timelapse-scroll-track">
+      <div id="timelapse-sticky-viewport">
+        
+        <!-- Background Visual Layers (Generated stages & easy replace slot) -->
+        <div id="timelapse-visual-layers">
+          <!-- Populated dynamically by construction-timelapse.js from animation-config.js -->
+        </div>
+
+        <!-- Top HUD Panel: Stage Details & Telemetry -->
+        <div class="timelapse-hud-top">
+          <div class="hud-panel hud-stage-info">
+            <div class="hud-meta-row">
+              <span class="hud-badge" id="hud-stage-badge">Нулевой цикл</span>
+              <span class="hud-system-tag">AURA CORE STRUCTURAL TIMELAPSE</span>
+            </div>
+            <h3 class="hud-stage-title" id="hud-stage-title">Геодезия, котлован и монолитный фундамент</h3>
+            <p class="hud-stage-desc" id="hud-stage-desc">
+              Лазерная разбивка геодезических осей, выемка грунта с укреплением шпунтовым ограждением. Заливка монолитной железобетонной плиты.
+            </p>
+          </div>
+
+          <div class="hud-panel hud-telemetry">
+            <div class="telemetry-item">
+              <span class="telemetry-label">Отметка высоты</span>
+              <span class="telemetry-value" id="hud-elevation-value">+0.000 м</span>
+            </div>
+            <div class="telemetry-item">
+              <span class="telemetry-label">Готовность каркаса</span>
+              <span class="telemetry-value" id="hud-progress-percent">20%</span>
+              <div class="telemetry-bar-wrapper">
+                <div class="telemetry-bar-fill" id="hud-progress-fill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom HUD Panel: Navigation, Controls, Specs & Scrubber -->
+        <div class="timelapse-hud-bottom">
+          <!-- Scrubber Bar -->
+          <div class="timelapse-scrubber-bar">
+            <input type="range" min="0" max="100" value="0" step="0.1" class="timelapse-range-input" id="timelapse-scrubber" title="Перемещайте ползунок для управления стройкой" />
+          </div>
+
+          <div class="hud-controls-container">
+            <!-- Direct Stage Jump Buttons -->
+            <nav id="timelapse-stage-nav" aria-label="Этапы строительства">
+              <!-- Populated by JS -->
+            </nav>
+
+            <!-- Utility Action Group -->
+            <div class="timelapse-action-group">
+              <button class="timelapse-btn-action" id="timelapse-play-btn" title="Включить автопроигрывание таймлапса">
+                <i data-lucide="play"></i>
+                <span>Автопоказ</span>
+              </button>
+              <button class="timelapse-btn-action" id="timelapse-blueprint-toggle" title="Переключить в инженерный режим чертежа">
+                <i data-lucide="layers"></i>
+                <span>Чертеж (CAD)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-Time Architectural Engineering Specs -->
+          <div id="hud-specs-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- PROJECTS CATALOG (ЖК, ВИЛЛЫ, КЛУБНЫЕ ДОМА, ПЕНТХАУСЫ)                    -->
+  <!-- ========================================================================= -->
+  <section class="projects-section" id="projects-section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-kicker">АРХИТЕКТУРНОЕ СОБРАНИЕ // ПОРТФОЛИО</div>
+          <h2 class="section-title">Коллекция жилых объектов AURA</h2>
+          <p class="section-lead">
+            От масштабных высотных комплексов в деловом центре до камерных клубных домов на набережной и приватных модернистских вилл в реликтовом бору.
+          </p>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="projects-filter-bar">
+          <button class="project-filter-btn active" data-filter="all">Все объекты (6)</button>
+          <button class="project-filter-btn" data-filter="highrise">Многоэтажные ЖК</button>
+          <button class="project-filter-btn" data-filter="villa">Приватные виллы</button>
+          <button class="project-filter-btn" data-filter="club">Клубные дома</button>
+          <button class="project-filter-btn" data-filter="penthouse">Пентхаусы</button>
+        </div>
+      </div>
+
+      <!-- Projects Dynamic Grid -->
+      <div class="projects-grid" id="projects-grid-container">
+        <!-- Injected by app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- ENGINEERING & ARCHITECTURAL STANDARDS                                     -->
+  <!-- ========================================================================= -->
+  <section class="standards-section" id="standards-section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-kicker">НАДЕЖНОСТЬ И КОМФОРТ // ENGINEERING BENCHMARK</div>
+          <h2 class="section-title">Инженерные стандарты девелопмента</h2>
+          <p class="section-lead">
+            Применяем бескомпромиссные европейские технологии долговечности, акустики и экологической безопасности.
+          </p>
+        </div>
+      </div>
+
+      <div class="standards-grid">
+        <div class="standard-card">
+          <span class="standard-num">01 / СТРУКТУРА</span>
+          <div class="standard-icon-box"><i data-lucide="shield-check"></i></div>
+          <h3 class="standard-title">Монолитный каркас B35 W8</h3>
+          <p class="standard-desc">
+            Безоболочечная конструктивная схема с шагом колонн до 8.5 метров. Расчетная сейсмическая устойчивость до 9 баллов по шкале MSK-64. Гарантированный срок службы здания — свыше 150 лет.
+          </p>
+        </div>
+
+        <div class="standard-card">
+          <span class="standard-num">02 / ОСТЕКЛЕНИЕ</span>
+          <div class="standard-icon-box"><i data-lucide="maximize"></i></div>
+          <h3 class="standard-title">Фасады Reynaers & Schüco</h3>
+          <p class="standard-desc">
+            Широкоформатные раздвижные порталы Hi-Finity с утопленным в пол порогом. Мультифункциональные триплекс-стеклопакеты Guardian Glass с селективным напылением: тепло зимой и прохлада летом.
+          </p>
+        </div>
+
+        <div class="standard-card">
+          <span class="standard-num">03 / АКУСТИКА</span>
+          <div class="standard-icon-box"><i data-lucide="volume-x"></i></div>
+          <h3 class="standard-title">Акустический комфорт 62 дБ</h3>
+          <p class="standard-desc">
+            Технология «плавающего пола» на базе базальтовых плит Rockwool Floor Batts и демпфированных межквартирных стен. Полная изоляция от структурного и воздушного шума мегаполиса.
+          </p>
+        </div>
+
+        <div class="standard-card">
+          <span class="standard-num">04 / ЭКОЛОГИЯ</span>
+          <div class="standard-icon-box"><i data-lucide="wind"></i></div>
+          <h3 class="standard-title">Климат & HEPA H13 очистка</h3>
+          <p class="standard-desc">
+            Центральное кондиционирование Daikin VRV с индивидуальным рекуператором и ультратонкой фильтрацией воздуха от 99.97% пыли, смога и микрочастиц. Поддержание влажности 45–55%.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- MORTGAGE & 0% INSTALLMENT CALCULATOR                                     -->
+  <!-- ========================================================================= -->
+  <section class="calc-section" id="calc-section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-kicker">ФИНАНСОВЫЕ ПРОГРАММЫ // УСЛОВИЯ ПРИОБРЕТЕНИЯ</div>
+          <h2 class="section-title">Калькулятор инвестиций и рассрочки 0%</h2>
+          <p class="section-lead">
+            Рассчитайте параметры покупки резиденции. Прямая беспроцентная рассрочка от застройщика или субсидированная ставка от ведущих банков.
+          </p>
+        </div>
+      </div>
+
+      <div class="calc-grid">
+        <!-- Inputs Column -->
+        <div class="calc-inputs-col">
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <span class="calc-lbl">Стоимость объекта</span>
+              <span class="calc-val-badge" id="calc-price-display">45 000 000 ₽</span>
+            </div>
+            <input type="range" id="calc-price-range" class="calc-slider" min="15000000" max="250000000" step="1000000" value="45000000">
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <span class="calc-lbl">Первоначальный взнос</span>
+              <div>
+                <span class="calc-val-badge" id="calc-dp-display">25%</span>
+                <span class="calc-sub-text" id="calc-dp-rub">(11 250 000 ₽)</span>
+              </div>
+            </div>
+            <input type="range" id="calc-dp-range" class="calc-slider" min="15" max="80" step="5" value="25">
+          </div>
+
+          <div class="calc-control-group">
+            <div class="calc-label-row">
+              <span class="calc-lbl">Срок кредитования / рассрочки</span>
+              <span class="calc-val-badge" id="calc-term-display">20 лет</span>
+            </div>
+            <input type="range" id="calc-term-range" class="calc-slider" min="1" max="30" step="1" value="20">
+          </div>
+
+          <div class="calc-control-group">
+            <span class="calc-lbl">Программа покупки</span>
+            <select id="calc-program-select" class="calc-select-styled">
+              <option value="developer_subsidized">Субсидированная ставка девелопера (4.8% годовых)</option>
+              <option value="zero_installment">Беспроцентная рассрочка от застройщика (0% переплаты)</option>
+              <option value="standard">Классическая премиум-ипотека (12.5% годовых)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Summary Output Column -->
+        <div class="calc-summary-col">
+          <div class="calc-result-main">
+            <span class="calc-result-kicker">Ежемесячный платеж</span>
+            <span class="calc-result-amount" id="calc-monthly-payment">218 640 ₽/мес</span>
+          </div>
+
+          <div class="calc-specs-breakdown">
+            <div class="breakdown-row">
+              <span>Сумма займа:</span>
+              <strong id="calc-loan-amount">33 750 000 ₽</strong>
+            </div>
+            <div class="breakdown-row">
+              <span>Необходимый доход:</span>
+              <strong id="calc-required-income">от 349 800 ₽</strong>
+            </div>
+            <div class="breakdown-row">
+              <span>Эскроу-гарантия:</span>
+              <strong style="color: #22c55e;">100% ФЗ-214</strong>
+            </div>
+          </div>
+
+          <button class="btn-primary-action" id="calc-send-ai-btn" style="width: 100%; justify-content: center;">
+            <i data-lucide="sparkles"></i>
+            <span>Обсудить расчет с ИИ-Консультантом</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- ABOUT DEVELOPER SECTION                                                   -->
+  <!-- ========================================================================= -->
+  <section class="about-section" id="about-section">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text-box">
+          <div class="section-kicker">О ДЕВЕЛОПЕРЕ // AURA PHILOSOPHY</div>
+          <h2 class="section-title">Мы строим не просто метры. <br>Мы создаем наследие.</h2>
+          
+          <div class="about-quote-box">
+            <p class="about-quote-text">
+              «Архитектура должна обладать достоинством камня, прозрачностью света и неподвластной времени геометрией. Наша цель — создавать пространства, которые будут восхищать через пятьдесят лет так же, как в день открытия дверей».
+            </p>
+            <div class="about-quote-author">Марк де Врис, Главный архитектор AURA Development</div>
+          </div>
+
+          <p class="about-desc" style="color: var(--color-text-muted); margin-bottom: 20px;">
+            AURA Development объединяет международное архитектурное бюро, собственный генподряд высшей категории надежности и консьерж-сервис класса де-люкс. Каждый наш объект создается с использованием технологии сквозного цифрового моделирования BIM LOD 500.
+          </p>
+
+          <button class="btn-outline-action" onclick="window.openBookingModal('Визит в штаб-квартиру AURA')">
+            <span>Познакомиться с командой архитекторов</span>
+            <i data-lucide="arrow-up-right"></i>
+          </button>
+        </div>
+
+        <div class="about-media-box">
+          <img src="assets/images/project_pinecrest.jpg" alt="Архитектурное бюро AURA" style="border-radius: 16px; border: 1px solid var(--border-card); box-shadow: 0 20px 50px rgba(0,0,0,0.6);" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- VIP CONTACT & PRIVATE SHOWROOM                                            -->
+  <!-- ========================================================================= -->
+  <section class="contact-section" id="contact-section">
+    <div class="container">
+      <div class="section-header">
+        <div>
+          <div class="section-kicker">ШТАБ-КВАРТИРА // ПРИВАТНЫЙ ВИЗИТ</div>
+          <h2 class="section-title">Запишитесь на закрытый показ</h2>
+          <p class="section-lead">
+            Приглашаем вас в наш флагманский офис продаж и интерактивный шоурум с натурными макетами комплексов и образцами материалов.
+          </p>
+        </div>
+      </div>
+
+      <div class="contact-card-box">
+        <div class="contact-details">
+          <div class="contact-item">
+            <i data-lucide="map-pin"></i>
+            <div>
+              <span class="contact-lbl">Флагманский офис продаж</span>
+              <p class="contact-val">Пресненская набережная, 12, Башня «Федерация Восток», 48 этаж</p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <i data-lucide="phone"></i>
+            <div>
+              <span class="contact-lbl">VIP-линия бронирования</span>
+              <p class="contact-val">+7 (495) 820-00-11</p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <i data-lucide="mail"></i>
+            <div>
+              <span class="contact-lbl">Архитектурный департамент</span>
+              <p class="contact-val">residences@aura-development.ru</p>
+            </div>
+          </div>
+
+          <div class="contact-item">
+            <i data-lucide="car"></i>
+            <div>
+              <span class="contact-lbl">Сервис для резидентов</span>
+              <p class="contact-val">Предоставляем трансфер Mercedes-Maybach в шоурум или на строительную площадку</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Form -->
+        <form class="contact-form-inline" id="booking-lead-form">
+          <div class="form-group-custom">
+            <label>Ваше имя</label>
+            <input type="text" name="name" class="form-input-custom" placeholder="Константин" required>
+          </div>
+          <div class="form-group-custom">
+            <label>Телефон для связи</label>
+            <input type="tel" name="phone" class="form-input-custom" placeholder="+7 (___) ___-__-__" required>
+          </div>
+          <div class="form-group-custom">
+            <label>Интересующий объект</label>
+            <input type="text" name="project" id="booking-project-name" class="form-input-custom" value="Skyline Aura Towers">
+          </div>
+          <button type="submit" class="btn-primary-action" style="margin-top: 10px; width: 100%; justify-content: center;">
+            <span>Забронировать VIP-визит</span>
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top-grid">
+        <div class="footer-brand-col">
+          <div class="brand-logo">
+            <div class="brand-monogram">A</div>
+            <div class="brand-text">
+              <span class="brand-name">A U R A</span>
+              <span class="brand-sub">DEVELOPMENT</span>
+            </div>
+          </div>
+          <p>
+            Девелопмент жилой недвижимости международного класса. Создаем непревзойденные пространства для жизни, объединяющие архитектурную монументальность и природную гармонию.
+          </p>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Объекты</h4>
+          <ul class="footer-links">
+            <li><a href="#projects-section">Skyline Aura Towers</a></li>
+            <li><a href="#projects-section">Pinecrest Forest Villa</a></li>
+            <li><a href="#projects-section">Lumen Imperial Club</a></li>
+            <li><a href="#projects-section">The Vertex Penthouse</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Инженерия</h4>
+          <ul class="footer-links">
+            <li><a href="#standards-section">BIM Моделирование</a></li>
+            <li><a href="#standards-section">Остекление Reynaers</a></li>
+            <li><a href="#standards-section">Акустическая изоляция</a></li>
+            <li><a href="#standards-section">Сертификация LEED</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Девелопер</h4>
+          <ul class="footer-links">
+            <li><a href="#about-section">Философия бренда</a></li>
+            <li><a href="#calc-section">Эскроу-счета (ФЗ-214)</a></li>
+            <li><a href="#contact-section">Пресс-центр</a></li>
+            <li><a href="#contact-section">Контакты офисов</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <span>© 2026 AURA Development Group. Все права защищены. Проектная декларация на сайте наш.дом.рф.</span>
+        <span>Архитектурное проектирование: AURA Studio & Partners</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: PROJECT DETAIL & FLOORPLAN SPECIFICATION                           -->
+  <!-- ========================================================================= -->
+  <div class="aura-modal-backdrop" id="project-detail-modal">
+    <div class="aura-modal-window">
+      <button class="modal-close-btn" onclick="window.closeProjectModal()" aria-label="Закрыть окно">
+        <i data-lucide="x"></i>
+      </button>
+      <div id="modal-project-content">
+        <!-- Injected dynamically by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: VIP BOOKING DIALOG                                                 -->
+  <!-- ========================================================================= -->
+  <div class="aura-modal-backdrop" id="booking-modal">
+    <div class="aura-modal-window modal-booking-window">
+      <button class="modal-close-btn" onclick="window.closeBookingModal()" aria-label="Закрыть окно">
+        <i data-lucide="x"></i>
+      </button>
+      <div class="section-kicker">ПРИВАТНЫЙ ВИЗИТ</div>
+      <h3 style="font-family: var(--font-display); font-size: 1.6rem; color: #fff; margin: 8px 0 16px;">Забронировать закрытую презентацию</h3>
+      <p style="font-size: 0.88rem; color: var(--color-text-muted); margin-bottom: 24px;">
+        Оставьте контакты, и персональный консультант свяжется с вами для согласования удобного времени показа и организации VIP-трансфера.
+      </p>
+      <form id="modal-quick-lead-form" onsubmit="event.preventDefault(); window.closeBookingModal(); if(window.aiConsultant) window.aiConsultant.openWithQuery('Я оставил заявку на презентацию, расскажи пока подробнее о проекте');">
+        <div class="form-group-custom" style="margin-bottom: 14px;">
+          <label>Имя и фамилия</label>
+          <input type="text" class="form-input-custom" placeholder="Александр" required>
+        </div>
+        <div class="form-group-custom" style="margin-bottom: 20px;">
+          <label>Номер телефона</label>
+          <input type="tel" class="form-input-custom" placeholder="+7 (999) 000-00-00" required>
+        </div>
+        <button type="submit" class="btn-primary-action" style="width: 100%; justify-content: center;">
+          <span>Подтвердить запись</span>
+          <i data-lucide="check"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- EMBEDDED AI REAL ESTATE CONCIERGE (ВСТРОЕННЫЙ ИИ-КОНСУЛЬТАНТ)             -->
+  <!-- ========================================================================= -->
+  <div id="ai-chat-widget">
+    <!-- Floating Trigger Pill -->
+    <div class="ai-trigger-pill" id="ai-chat-trigger">
+      <div class="ai-trigger-avatar">
+        <i data-lucide="sparkles"></i>
+        <span class="ai-status-pulse"></span>
+      </div>
+      <div>
+        <div class="ai-trigger-kicker">AURA INTELLIGENCE</div>
+        <div class="ai-trigger-text">ИИ-Консультант • Online</div>
+      </div>
+      <span class="ai-unread-badge" id="ai-chat-badge">1</span>
+    </div>
+
+    <!-- Chat Window Dialog -->
+    <div id="ai-chat-window" data-lenis-prevent>
+      <!-- Header -->
+      <div class="ai-window-header">
+        <div class="ai-header-profile">
+          <div class="ai-header-avatar">
+            <i data-lucide="sparkles"></i>
+          </div>
+          <div class="ai-header-titles">
+            <span class="ai-bot-name">AURA AI Concierge</span>
+            <span class="ai-bot-sub">
+              <span class="ai-online-indicator"></span>
+              AURA Intelligence • Голосовой ИИ
+            </span>
+          </div>
+        </div>
+        <div class="ai-header-actions">
+          <div class="ai-lang-switch ai-chat-lang-switch" id="ai-chat-lang-switch">
+            <button class="ai-lang-btn active" data-lang="ru">RU</button>
+            <button class="ai-lang-btn" data-lang="en">EN</button>
+            <button class="ai-lang-btn" data-lang="uz">UZ</button>
+          </div>
+          <button class="ai-live-call-header-btn" id="ai-start-call-header-btn" title="Начать живой голосовой звонок с архитектором">
+            <i data-lucide="phone-call"></i>
+            <span>Звонок</span>
+          </button>
+          <button class="ai-voice-toggle-btn" id="ai-voice-toggle" title="Включить/выключить авто-озвучивание">
+            <i data-lucide="volume-2" id="ai-voice-icon"></i>
+            <span id="ai-voice-label">Голос</span>
+          </button>
+          <button class="ai-header-close" id="ai-chat-close" aria-label="Свернуть диалог">
+            <i data-lucide="minus"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Scroll Area -->
+      <div id="ai-chat-messages" data-lenis-prevent>
+        <!-- Interactive Call Invitation Banner -->
+        <div class="ai-call-invite-banner" id="ai-call-invite-banner">
+          <div class="ai-call-invite-info">
+            <span class="ai-call-pulse-dot"></span>
+            <div class="ai-call-invite-texts">
+              <span class="ai-call-invite-title">Живое голосовое общение</span>
+              <span class="ai-call-invite-sub">Говорите вслух как по телефону (Hands-free)</span>
+            </div>
+          </div>
+          <button class="ai-call-invite-btn" id="ai-call-start-btn" title="Начать разговор">
+            <i data-lucide="phone-call"></i>
+            <span>Позвонить</span>
+          </button>
+        </div>
+
+        <!-- Initial greeting message -->
+        <div class="ai-message bot-message">
+          <div class="ai-bubble">
+            <div class="ai-bubble-text">
+              Здравствуйте! Я — интеллектуальный архитектурный консультант и голосовой ассистент девелоперской компании <strong>AURA Development</strong> на базе <strong>Gemini Flash</strong>.<br><br>
+              Вы можете общаться в чате или нажать <strong>«Позвонить»</strong> сверху для живого непрерывного разговора вслух. Я с радостью сориентирую вас по резиденциям, инженерным технологиям или рассчитаю рассрочку 0%.<br><br>
+              О каком проекте или финансовой программе рассказать подробнее?
+            </div>
+            <button class="ai-msg-speak-btn" data-speak-btn title="Прослушать сообщение">
+              <i data-lucide="volume-2"></i> Озвучить
+            </button>
+          </div>
+          <span class="ai-msg-time">Только что</span>
+        </div>
+      </div>
+
+      <!-- Suggestion Chips Bar -->
+      <div id="ai-chat-chips">
+        <!-- Rendered by ai-consultant.js -->
+      </div>
+
+      <!-- Input Bar with Voice Recognition -->
+      <div class="ai-chat-input-bar">
+        <button id="ai-chat-mic" class="ai-mic-btn" aria-label="Голосовой ввод" title="Говорить в микрофон">
+          <i data-lucide="mic"></i>
+        </button>
+        <div class="ai-input-wrapper">
+          <input type="text" id="ai-chat-input" class="ai-input-field" placeholder="Спросите или нажмите микрофон..." autocomplete="off">
+          <div id="ai-voice-status" class="ai-voice-status" style="display: none;">
+            <div class="ai-soundwave">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <span class="ai-voice-status-text">Слушаю вас... Говорите</span>
+          </div>
+        </div>
+        <button id="ai-chat-send" class="ai-send-btn" aria-label="Отправить вопрос">
+          <i data-lucide="arrow-up"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Interactive Voice Call Modal (Siri / Gemini Live Style) -->
+  <div id="ai-voice-call-modal" class="ai-call-modal" style="display: none;" data-lenis-prevent>
+    <div class="ai-call-backdrop" id="ai-call-backdrop"></div>
+    <div class="ai-call-container">
+      <!-- Top Bar -->
+      <div class="ai-call-topbar">
+        <div class="ai-call-badge">
+          <span class="ai-call-live-dot"></span>
+          <span>AURA LIVE INTELLIGENCE</span>
+        </div>
+        <div class="ai-lang-switch" id="ai-call-lang-switch">
+          <button class="ai-lang-btn active" data-lang="ru">RU</button>
+          <button class="ai-lang-btn" data-lang="en">EN</button>
+          <button class="ai-lang-btn" data-lang="uz">UZ</button>
+        </div>
+        <div class="ai-call-timer" id="ai-call-timer">00:00</div>
+        <button class="ai-call-close-btn" id="ai-call-close" title="Свернуть звонок">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <!-- Main Animated Voice Orb Area -->
+      <div class="ai-call-orb-wrapper" id="ai-call-orb-touch-area" title="Нажмите на сферу, чтобы перебить речь и сказать">
+        <div class="ai-call-orb-glow" id="ai-call-orb-glow"></div>
+        <div class="ai-call-orb-ring ring-1"></div>
+        <div class="ai-call-orb-ring ring-2"></div>
+        <div class="ai-call-orb-ring ring-3"></div>
+        <div class="ai-call-orb" id="ai-call-orb">
+          <div class="ai-orb-core"></div>
+          <div class="ai-orb-wave-bars">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="ai-call-state-label" id="ai-call-state">Инициализация связи...</div>
+      </div>
+
+      <!-- Subtitles & Transcript -->
+      <div class="ai-call-transcript-box">
+        <p class="ai-call-subtitle-user" id="ai-call-sub-user"></p>
+        <p class="ai-call-subtitle-bot" id="ai-call-sub-bot">«Здравствуйте! Я на связи. Вы можете говорить со мной абсолютно свободно своими словами — о семье, детях, питомцах, ценах, материалах или рассрочке.»</p>
+      </div>
+
+      <!-- Free Conversation Hint & Suggestions -->
+      <div class="ai-call-suggestions-label" id="ai-call-sugg-label">Говорите в микрофон свободно на любую тему или выберите идею:</div>
+      <div class="ai-call-suggestions" id="ai-call-chips-container">
+        <button class="ai-call-chip" data-call-suggest="Что посоветуешь для большой семьи с двумя детьми и собакой?">«Что для семьи с детьми и собакой?»</button>
+        <button class="ai-call-chip" data-call-suggest="Из каких материалов сделан каркас и фасады домов?">«Материалы каркаса и окон»</button>
+        <button class="ai-call-chip" data-call-suggest="В чем реальная выгода рассрочки 0% перед ипотекой?">«Выгода рассрочки 0%»</button>
+        <button class="ai-call-chip" data-call-suggest="Расскажи про виллы в лесу с теплым бассейном">«Виллы с теплым бассейном»</button>
+      </div>
+
+      <!-- Call Action Controls -->
+      <div class="ai-call-actions">
+        <button class="ai-call-btn ai-call-btn-mic" id="ai-call-mic-toggle" title="Микрофон Вкл/Выкл">
+          <i data-lucide="mic" id="ai-call-mic-icon"></i>
+          <span id="ai-call-mic-label">Микрофон</span>
+        </button>
+        <button class="ai-call-btn ai-call-btn-end" id="ai-call-end-btn" title="Завершить звонок">
+          <i data-lucide="phone-off"></i>
+          <span id="ai-call-end-label">Завершить</span>
+        </button>
+        <button class="ai-call-btn ai-call-btn-interrupt" id="ai-call-interrupt-btn" title="Перебить речь и сказать">
+          <i data-lucide="hand"></i>
+          <span id="ai-call-speak-label">Сказать</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/lenis.min.js"></script>
+  <script src="js/animation-config.js?v=7.0"></script>
+  <script src="js/construction-timelapse.js?v=7.0"></script>
+  <script src="js/ai-consultant.js?v=7.0"></script>
+  <script src="js/mortgage-calc.js?v=7.0"></script>
+  <script src="js/app.js?v=7.0"></script>
+
+  <script>
+    // Initialize Lucide icons after DOM load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

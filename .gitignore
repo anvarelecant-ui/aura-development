@@ -1,0 +1,35 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.env
+Credentials.env
+
+# Temporary artifacts
+test_suite.py
+shot_real_ai.py
+test_resp.json
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Vercel
+.vercel
+# Large raw screenshots
+screenshot_*.png
+shot_02_*.png
+shot_03_*.png
+shot_04_*.png
+shot_05_*.png
+shot_06_*.png
+shot_07_*.png
+shot_08_*.png
