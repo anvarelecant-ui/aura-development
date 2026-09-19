@@ -35,8 +35,6 @@ class AIConsultant {
     // Voice DOM Elements
     this.micBtn = document.getElementById('ai-chat-mic');
     this.voiceStatus = document.getElementById('ai-voice-status');
-    this.voiceToggle = document.getElementById('ai-voice-toggle');
-    this.voiceLabel = document.getElementById('ai-voice-label');
 
     this.init();
   }
@@ -435,21 +433,11 @@ class AIConsultant {
       `;
     }
 
-    let speakBtnHtml = '';
-    if (sender === 'bot') {
-      speakBtnHtml = `
-        <button class="ai-msg-speak-btn" data-speak-btn title="Прослушать ответ голосом">
-          <i data-lucide="volume-2"></i> <span>Озвучить</span>
-        </button>
-      `;
-    }
-
     msgEl.innerHTML = `
       <div class="ai-bubble">
         <div class="ai-bubble-text">${this.formatMarkdown(content)}</div>
         ${cardHtml}
         ${actionsHtml}
-        ${speakBtnHtml}
       </div>
       <span class="ai-msg-time">${this.getCurrentTime()}</span>
     `;
@@ -457,12 +445,6 @@ class AIConsultant {
     this.messagesContainer.appendChild(msgEl);
     if (window.lucide) window.lucide.createIcons();
     this.scrollToBottom();
-
-    // Auto-play voice if enabled
-    if (sender === 'bot' && this.isVoiceAutoPlay) {
-      const btn = msgEl.querySelector('[data-speak-btn]');
-      this.speakText(content, btn);
-    }
   }
 
   /* ---------------- VOICE RECOGNITION (STT) ---------------- */
@@ -533,42 +515,9 @@ class AIConsultant {
 
   /* ---------------- VOICE SYNTHESIS (TTS) ---------------- */
   initSpeechSynthesis() {
-    if (!('speechSynthesis' in window)) {
-      if (this.voiceToggle) this.voiceToggle.style.display = 'none';
-      return;
-    }
-
-    if (this.voiceToggle) {
-      this.voiceToggle.addEventListener('click', () => {
-        this.isVoiceAutoPlay = !this.isVoiceAutoPlay;
-        this.voiceToggle.classList.toggle('active', this.isVoiceAutoPlay);
-        if (this.voiceLabel) {
-          this.voiceLabel.textContent = this.isVoiceAutoPlay ? 'Голос Вкл' : 'Голос';
-        }
-        if (this.isVoiceAutoPlay) {
-          this.speakText('Голосовой режим включен. Я озвучиваю ответы на ваши вопросы.');
-        } else {
-          this.stopSpeaking();
-        }
-      });
-    }
-
-    // Delegated click for speak buttons on any message
-    if (this.messagesContainer) {
-      this.messagesContainer.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-speak-btn]');
-        if (!btn) return;
-        const bubble = btn.closest('.ai-bubble');
-        if (!bubble) return;
-        const textEl = bubble.querySelector('.ai-bubble-text');
-        if (!textEl) return;
-
-        if (btn.classList.contains('speaking')) {
-          this.stopSpeaking();
-        } else {
-          this.speakText(textEl.innerText, btn);
-        }
-      });
+    if (!('speechSynthesis' in window)) return;
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = () => {};
     }
   }
 

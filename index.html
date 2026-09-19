@@ -48,13 +48,9 @@
         <button class="btn-header-cta" onclick="window.openBookingModal('Консультация с архитектором')">
           <span>Записаться на показ</span>
         </button>
-        <button class="btn-card-ai" onclick="window.aiConsultant.toggleChat(true)" title="Открыть диалог с искусственным интеллектом">
+        <button class="btn-card-ai" onclick="window.aiConsultant.toggleChat(true)" title="Открыть диалог с ИИ-Консультантом">
           <i data-lucide="sparkles"></i>
           <span>ИИ-Консультант</span>
-        </button>
-        <button class="btn-card-ai btn-call-pulse" onclick="window.aiConsultant.startVoiceCall()" title="Начать живой голосовой разговор с ИИ">
-          <i data-lucide="phone-call"></i>
-          <span>Голосовой звонок</span>
         </button>
         <button class="mobile-toggle" id="mobile-menu-toggle" aria-label="Открыть меню">
           <i data-lucide="menu"></i>
@@ -619,10 +615,10 @@
             <i data-lucide="sparkles"></i>
           </div>
           <div class="ai-header-titles">
-            <span class="ai-bot-name">AURA AI Concierge</span>
+            <span class="ai-bot-name">AURA Concierge</span>
             <span class="ai-bot-sub">
               <span class="ai-online-indicator"></span>
-              AURA Intelligence • Голосовой ИИ
+              AURA Intelligence • Онлайн
             </span>
           </div>
         </div>
@@ -635,10 +631,6 @@
           <button class="ai-live-call-header-btn" id="ai-start-call-header-btn" title="Начать живой голосовой звонок с архитектором">
             <i data-lucide="phone-call"></i>
             <span>Звонок</span>
-          </button>
-          <button class="ai-voice-toggle-btn" id="ai-voice-toggle" title="Включить/выключить авто-озвучивание">
-            <i data-lucide="volume-2" id="ai-voice-icon"></i>
-            <span id="ai-voice-label">Голос</span>
           </button>
           <button class="ai-header-close" id="ai-chat-close" aria-label="Свернуть диалог">
             <i data-lucide="minus"></i>
@@ -666,14 +658,11 @@
         <!-- Initial greeting message -->
         <div class="ai-message bot-message">
           <div class="ai-bubble">
-            <div class="ai-bubble-text">
-              Здравствуйте! Я — интеллектуальный архитектурный консультант и голосовой ассистент девелоперской компании <strong>AURA Development</strong> на базе <strong>Gemini Flash</strong>.<br><br>
+            <div class="ai-bubble-text" id="ai-initial-greeting">
+              Здравствуйте! Я — интеллектуальный архитектурный консультант и голосовой ассистент девелоперской компании <strong>AURA Development</strong>.<br><br>
               Вы можете общаться в чате или нажать <strong>«Позвонить»</strong> сверху для живого непрерывного разговора вслух. Я с радостью сориентирую вас по резиденциям, инженерным технологиям или рассчитаю рассрочку 0%.<br><br>
               О каком проекте или финансовой программе рассказать подробнее?
             </div>
-            <button class="ai-msg-speak-btn" data-speak-btn title="Прослушать сообщение">
-              <i data-lucide="volume-2"></i> Озвучить
-            </button>
           </div>
           <span class="ai-msg-time">Только что</span>
         </div>
