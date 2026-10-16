@@ -1177,6 +1177,67 @@
   height: 28px;
 }
 
+
+/* In-Call Quick Text Input (Hybrid Voice + Typing) */
+.ai-call-quick-input-wrap {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 100px;
+  padding: 4px 6px 4px 16px;
+  margin-bottom: 12px;
+  transition: all 0.25s ease;
+}
+
+.ai-call-quick-input-wrap:focus-within {
+  border-color: var(--color-gold);
+  background: rgba(203, 166, 104, 0.08);
+  box-shadow: 0 0 16px rgba(203, 166, 104, 0.2);
+}
+
+.ai-call-quick-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+}
+
+.ai-call-quick-input::placeholder {
+  color: var(--color-text-dim);
+}
+
+.ai-call-quick-send {
+  background: var(--color-gold);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0b0d11;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ai-call-quick-send:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 12px rgba(203, 166, 104, 0.5);
+}
+
+.ai-call-quick-send i {
+  width: 14px;
+  height: 14px;
+}
+
 /* Mobile Responsive */
 @media (max-width: 480px) {
   #ai-chat-widget {

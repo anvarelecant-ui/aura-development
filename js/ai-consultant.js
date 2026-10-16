@@ -113,6 +113,11 @@ class AIConsultant {
     if (this.inputField) {
       this.inputField.placeholder = this.getLocalizedInputPlaceholder();
     }
+    if (this.callQuickInput) {
+      this.callQuickInput.placeholder = lang === 'en'
+        ? 'Or type your question here...'
+        : (lang === 'uz' ? 'Yoki savolingizni bu yerga yozing...' : 'Или напишите вопрос сюда...');
+    }
 
     // Update chat initial greeting if history is still fresh
     const greetingEl = document.getElementById('ai-initial-greeting');
@@ -461,7 +466,7 @@ class AIConsultant {
       this.recognition = new SpeechRecognition();
       this.recognition.lang = 'ru-RU';
       this.recognition.continuous = false;
-      this.recognition.interimResults = false;
+      this.recognition.interimResults = true;
 
       this.recognition.onstart = () => {
         this.isListening = true;
@@ -471,12 +476,12 @@ class AIConsultant {
       };
 
       this.recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript && transcript.trim()) {
-          this.inputField.value = transcript;
-          setTimeout(() => {
-            this.handleSendMessage();
-          }, 300);
+        let text = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          text += event.results[i][0].transcript;
+        }
+        if (text && text.trim() && this.inputField) {
+          this.inputField.value = text.trim();
         }
       };
 
@@ -490,6 +495,11 @@ class AIConsultant {
 
       this.recognition.onend = () => {
         this.resetListening();
+        if (this.inputField && this.inputField.value.trim()) {
+          setTimeout(() => {
+            this.handleSendMessage();
+          }, 350);
+        }
       };
 
       if (this.micBtn) {
@@ -522,7 +532,7 @@ class AIConsultant {
     if (this.voiceStatus) this.voiceStatus.style.display = 'none';
   }
 
-  /* ---------------- MICROPHONE ACCESS & ERRORS ---------------- */
+  /* ---------------- MICROPHONE ACCESS & VOLUME MONITORING ---------------- */
   async ensureMicAccess() {
     if (!window.isSecureContext) {
       this.micError = 'insecure';
@@ -530,11 +540,18 @@ class AIConsultant {
     }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       this.micError = null;
-      return true; // let SpeechRecognition request access itself
+      return true;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(t => t.stop());
+      // Re-use or request fresh audio stream
+      if (this.micStream && this.micStream.active) {
+        this.micError = null;
+        return true;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+      this.micStream = stream;
       this.micError = null;
       return true;
     } catch (e) {
@@ -544,6 +561,108 @@ class AIConsultant {
         : 'not-allowed';
       return false;
     }
+  }
+
+  startMicVolumeMonitor(stream) {
+    if (!stream) return;
+    try {
+      if (!this.audioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        this.audioCtx = new AudioCtx();
+      }
+      if (this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume();
+      }
+      if (this.micSourceNode) {
+        try { this.micSourceNode.disconnect(); } catch(e) {}
+      }
+      this.micSourceNode = this.audioCtx.createMediaStreamSource(stream);
+      this.micAnalyser = this.audioCtx.createAnalyser();
+      this.micAnalyser.fftSize = 64;
+      this.micSourceNode.connect(this.micAnalyser);
+
+      const waveSpans = document.querySelectorAll('#ai-call-orb .ai-orb-wave-bars span');
+      const dataArray = new Uint8Array(this.micAnalyser.frequencyBinCount);
+      let silenceTicks = 0;
+
+      const loop = () => {
+        if (!this.isInCall || !this.micAnalyser) return;
+        this.micAnalyser.getByteFrequencyData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+        const avg = sum / dataArray.length;
+
+        // If listening to user: animate orb & wave bars according to user voice loudness!
+        if (this.currentCallState === 'listening' && !this.isSpeaking) {
+          if (avg > 8) {
+            silenceTicks = 0;
+            if (this.callOrb) {
+              const scale = 1 + Math.min(0.24, avg / 130);
+              this.callOrb.style.transform = `scale(${scale})`;
+            }
+            if (waveSpans && waveSpans.length) {
+              waveSpans.forEach((span, idx) => {
+                const val = dataArray[idx % dataArray.length] || 0;
+                span.style.transform = `scaleY(${Math.max(0.25, val / 90)})`;
+              });
+            }
+            // Real-time reassurance that sound is reaching the microphone
+            if (this.callStateLabel && !this.callStateLabel.textContent.includes('...')) {
+              this.callStateLabel.textContent = this.currentLang === 'en'
+                ? 'Hearing your voice...'
+                : (this.currentLang === 'uz' ? 'Ovozingizni eshityapman...' : 'Слышу ваш голос...');
+            }
+          } else {
+            silenceTicks++;
+            if (this.callOrb) this.callOrb.style.transform = '';
+            if (waveSpans && waveSpans.length) {
+              waveSpans.forEach(span => span.style.transform = '');
+            }
+            // If silence persists for 6 seconds in listening mode, provide helpful mic guidance
+            if (silenceTicks > 360) {
+              if (this.callStateLabel) {
+                const hint = this.currentLang === 'en'
+                  ? 'Microphone silent. Check Chrome mic device (🔒)'
+                  : (this.currentLang === 'uz'
+                    ? 'Mikrofondan ovoz kelmayapti. Tanlangan mikrofonni tekshiring (🔒)'
+                    : 'Звук не поступает. Проверьте выбор микрофона в браузере (🔒)');
+                this.callStateLabel.textContent = hint;
+              }
+            }
+          }
+        } else {
+          if (this.callOrb) this.callOrb.style.transform = '';
+          if (waveSpans && waveSpans.length) {
+            waveSpans.forEach(span => span.style.transform = '');
+          }
+        }
+
+        this.micAnimFrame = requestAnimationFrame(loop);
+      };
+      loop();
+    } catch (e) {
+      console.warn('Audio monitor init warning:', e);
+    }
+  }
+
+  stopMicVolumeMonitor() {
+    if (this.micAnimFrame) {
+      cancelAnimationFrame(this.micAnimFrame);
+      this.micAnimFrame = null;
+    }
+    if (this.micSourceNode) {
+      try { this.micSourceNode.disconnect(); } catch(e) {}
+      this.micSourceNode = null;
+    }
+    if (this.micStream) {
+      try {
+        this.micStream.getTracks().forEach(t => t.stop());
+      } catch(e) {}
+      this.micStream = null;
+    }
+    if (this.callOrb) this.callOrb.style.transform = '';
   }
 
   isFatalMicError(code) {
@@ -1027,6 +1146,20 @@ class AIConsultant {
       this.callMicToggle.addEventListener('click', () => this.toggleCallMic());
     }
 
+    // In-Call Quick Text Form (Dual Voice / Keyboard Interaction)
+    const quickForm = document.getElementById('ai-call-quick-form');
+    this.callQuickInput = document.getElementById('ai-call-quick-input');
+    if (quickForm && this.callQuickInput) {
+      quickForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = this.callQuickInput.value.trim();
+        if (text) {
+          this.callQuickInput.value = '';
+          this.handleCallUserQuery(text);
+        }
+      });
+    }
+
     // Call suggestion chips
     document.querySelectorAll('[data-call-suggest]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1067,9 +1200,14 @@ class AIConsultant {
       }
     }, welcomeAudio);
 
-    // Ask for microphone permission right away (while the greeting plays)
+    // Request microphone and start real-time volume visualizer right away
     this.micError = null;
-    this.micAccessPromise = this.ensureMicAccess();
+    this.micAccessPromise = this.ensureMicAccess().then(ok => {
+      if (ok && this.micStream) {
+        this.startMicVolumeMonitor(this.micStream);
+      }
+      return ok;
+    });
   }
 
   endVoiceCall() {
@@ -1078,8 +1216,11 @@ class AIConsultant {
 
     if (this.callTimerInterval) clearInterval(this.callTimerInterval);
     this.stopSpeaking();
+    this.stopMicVolumeMonitor();
+    clearTimeout(this.speechSubmitTimer);
     if (this.callRecognition) {
       try { this.callRecognition.abort(); } catch(e) {}
+      this.callRecognition = null;
     }
 
     if (this.callModal) {
@@ -1118,12 +1259,27 @@ class AIConsultant {
     const stateLabels = this.getLocalizedStateLabels();
     this.setCallState('listening', stateLabels.listening || 'Слушаю вас... Говорите');
 
-    if (!this.callRecognition) {
-      this.callRecognition = new SpeechRecognition();
-      this.callRecognition.continuous = false;
-      this.callRecognition.interimResults = true;
+    // Clean up previous recognition session to prevent Chrome stale instance freezes
+    if (this.callRecognition) {
+      try {
+        this.callRecognition.onresult = null;
+        this.callRecognition.onerror = null;
+        this.callRecognition.onend = null;
+        this.callRecognition.abort();
+      } catch(e) {}
+      this.callRecognition = null;
+    }
 
-      this.callRecognition.onresult = (event) => {
+    this.pendingTranscript = '';
+    clearTimeout(this.speechSubmitTimer);
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = this.getRecognitionLang();
+
+      recognition.onresult = (event) => {
         let interim = '';
         let final = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -1133,43 +1289,56 @@ class AIConsultant {
             interim += event.results[i][0].transcript;
           }
         }
-        const prefix = this.currentLang === 'en' ? 'You: ' : (this.currentLang === 'uz' ? 'Siz: ' : 'Вы: ');
-        if (this.callSubUser) {
-          this.callSubUser.textContent = `${prefix}${final || interim}`;
-        }
-        if (final && final.trim()) {
-          this.handleCallUserQuery(final.trim());
+        const text = (final || interim || '').trim();
+        if (text) {
+          this.pendingTranscript = text;
+          const prefix = this.currentLang === 'en' ? 'You: ' : (this.currentLang === 'uz' ? 'Siz: ' : 'Вы: ');
+          if (this.callSubUser) {
+            this.callSubUser.textContent = `${prefix}${text}`;
+          }
+
+          // Debounce: when user pauses for 1000ms, auto-submit the spoken query!
+          clearTimeout(this.speechSubmitTimer);
+          this.speechSubmitTimer = setTimeout(() => {
+            if (this.pendingTranscript && this.isInCall && !this.isSpeaking) {
+              const query = this.pendingTranscript;
+              this.pendingTranscript = '';
+              this.handleCallUserQuery(query);
+            }
+          }, 1000);
         }
       };
 
-      this.callRecognition.onerror = (event) => {
+      recognition.onerror = (event) => {
         console.warn('Call recognition error:', event.error);
         if (this.isInCall && this.isFatalMicError(event.error)) {
-          // Stop the silent retry loop and tell the user what is wrong
           this.micError = event.error;
           this.showCallMicError(event.error);
         }
-        // 'no-speech' / 'aborted': onend handles the restart
       };
 
-      this.callRecognition.onend = () => {
+      recognition.onend = () => {
+        // If there was unsubmitted recognized speech, process it immediately!
+        if (this.pendingTranscript && this.isInCall && !this.isSpeaking) {
+          const query = this.pendingTranscript;
+          this.pendingTranscript = '';
+          this.handleCallUserQuery(query);
+          return;
+        }
+
         if (this.isInCall && !this.isSpeaking && this.currentCallState === 'listening') {
           setTimeout(() => {
-            if (this.isInCall && !this.isSpeaking) {
-              try { this.callRecognition.start(); } catch(e) {}
+            if (this.isInCall && !this.isSpeaking && this.currentCallState === 'listening') {
+              this.startCallListening();
             }
-          }, 400);
+          }, 300);
         }
       };
-    }
 
-    // Always keep recognition language synced with currentLang
-    this.callRecognition.lang = this.getRecognitionLang();
-
-    try {
-      this.callRecognition.start();
-    } catch(e) {
-      // Already active
+      this.callRecognition = recognition;
+      recognition.start();
+    } catch(err) {
+      console.warn('Could not start recognition:', err);
     }
   }
 
