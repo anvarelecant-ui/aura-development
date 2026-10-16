@@ -483,6 +483,9 @@ class AIConsultant {
       this.recognition.onerror = (event) => {
         console.warn('Speech recognition status:', event.error);
         this.resetListening();
+        if (this.isFatalMicError(event.error)) {
+          this.addMessageToUI(this.getMicErrorMessage(event.error), 'bot');
+        }
       };
 
       this.recognition.onend = () => {
@@ -490,15 +493,21 @@ class AIConsultant {
       };
 
       if (this.micBtn) {
-        this.micBtn.addEventListener('click', () => {
+        this.micBtn.addEventListener('click', async () => {
           if (this.isListening) {
             this.recognition.stop();
-          } else {
-            try {
-              this.recognition.start();
-            } catch (e) {
-              console.warn('Could not start voice recognition:', e);
-            }
+            return;
+          }
+          const ok = await this.ensureMicAccess();
+          if (!ok) {
+            this.addMessageToUI(this.getMicErrorMessage(this.micError), 'bot');
+            return;
+          }
+          this.recognition.lang = this.getRecognitionLang();
+          try {
+            this.recognition.start();
+          } catch (e) {
+            console.warn('Could not start voice recognition:', e);
           }
         });
       }
@@ -511,6 +520,72 @@ class AIConsultant {
     this.isListening = false;
     if (this.micBtn) this.micBtn.classList.remove('listening');
     if (this.voiceStatus) this.voiceStatus.style.display = 'none';
+  }
+
+  /* ---------------- MICROPHONE ACCESS & ERRORS ---------------- */
+  async ensureMicAccess() {
+    if (!window.isSecureContext) {
+      this.micError = 'insecure';
+      return false;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this.micError = null;
+      return true; // let SpeechRecognition request access itself
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop());
+      this.micError = null;
+      return true;
+    } catch (e) {
+      console.warn('Microphone access error:', e);
+      this.micError = (e.name === 'NotFoundError' || e.name === 'OverconstrainedError' || e.name === 'NotReadableError')
+        ? 'audio-capture'
+        : 'not-allowed';
+      return false;
+    }
+  }
+
+  isFatalMicError(code) {
+    return ['not-allowed', 'service-not-allowed', 'audio-capture', 'network', 'language-not-supported', 'insecure'].includes(code);
+  }
+
+  getMicErrorMessage(code) {
+    const L = this.currentLang;
+    const msgs = {
+      'not-allowed': {
+        ru: 'Нет доступа к микрофону. Разрешите его в адресной строке (значок 🔒) и попробуйте снова.',
+        en: 'Microphone access is blocked. Allow it via the 🔒 icon in the address bar and try again.',
+        uz: 'Mikrofonga ruxsat yo\'q. Manzil satridagi 🔒 belgisi orqali ruxsat bering va qayta urinib ko\'ring.'
+      },
+      'audio-capture': {
+        ru: 'Микрофон не найден или занят другим приложением.',
+        en: 'No microphone found, or it is used by another app.',
+        uz: 'Mikrofon topilmadi yoki boshqa dastur band qilgan.'
+      },
+      'network': {
+        ru: 'Сервис распознавания речи недоступен. Откройте сайт в Google Chrome или Edge с интернетом.',
+        en: 'Speech service unavailable. Use Google Chrome or Edge with an internet connection.',
+        uz: 'Nutqni aniqlash xizmati mavjud emas. Saytni internet bilan Google Chrome yoki Edge\'da oching.'
+      },
+      'language-not-supported': {
+        ru: 'Браузер не распознаёт речь на выбранном языке. Попробуйте другой язык или Chrome.',
+        en: 'Your browser cannot recognize this language. Try another language or Chrome.',
+        uz: 'Brauzer bu tilni aniqlay olmaydi. Boshqa til yoki Chrome\'dan foydalaning.'
+      },
+      'insecure': {
+        ru: 'Микрофон работает только по HTTPS или на localhost.',
+        en: 'Microphone only works over HTTPS or on localhost.',
+        uz: 'Mikrofon faqat HTTPS yoki localhost orqali ishlaydi.'
+      }
+    };
+    const key = code === 'service-not-allowed' ? 'not-allowed' : code;
+    const m = msgs[key] || msgs['not-allowed'];
+    return m[L] || m.ru;
+  }
+
+  showCallMicError(code) {
+    this.setCallState('error', this.getMicErrorMessage(code));
   }
 
   /* ---------------- VOICE SYNTHESIS (TTS) ---------------- */
@@ -573,6 +648,10 @@ class AIConsultant {
   }
 
   stopSpeaking() {
+    if (this.speechSafetyTimer) {
+      clearTimeout(this.speechSafetyTimer);
+      this.speechSafetyTimer = null;
+    }
     if (this.currentAudioPlayer) {
       try {
         this.currentAudioPlayer.pause();
@@ -981,11 +1060,16 @@ class AIConsultant {
     const stateLabels = this.getLocalizedStateLabels();
     this.setCallState('speaking', stateLabels.speaking || 'AURA говорит...');
     const welcomeAudio = `assets/audio/welcome_${this.currentLang}.mp3`;
-    this.speakVoiceCall(welcome, () => {
+    this.speakVoiceCall(welcome, async () => {
+      await this.micAccessPromise;
       if (this.isInCall) {
         this.startCallListening();
       }
     }, welcomeAudio);
+
+    // Ask for microphone permission right away (while the greeting plays)
+    this.micError = null;
+    this.micAccessPromise = this.ensureMicAccess();
   }
 
   endVoiceCall() {
@@ -1025,6 +1109,11 @@ class AIConsultant {
       return;
     }
 
+    if (this.micError) {
+      this.showCallMicError(this.micError);
+      return;
+    }
+
     this.stopSpeaking();
     const stateLabels = this.getLocalizedStateLabels();
     this.setCallState('listening', stateLabels.listening || 'Слушаю вас... Говорите');
@@ -1055,13 +1144,12 @@ class AIConsultant {
 
       this.callRecognition.onerror = (event) => {
         console.warn('Call recognition error:', event.error);
-        if (this.isInCall && event.error !== 'aborted') {
-          setTimeout(() => {
-            if (this.isInCall && !this.isSpeaking) {
-              this.startCallListening();
-            }
-          }, 800);
+        if (this.isInCall && this.isFatalMicError(event.error)) {
+          // Stop the silent retry loop and tell the user what is wrong
+          this.micError = event.error;
+          this.showCallMicError(event.error);
         }
+        // 'no-speech' / 'aborted': onend handles the restart
       };
 
       this.callRecognition.onend = () => {
@@ -1085,9 +1173,13 @@ class AIConsultant {
     }
   }
 
-  interruptAndListen() {
+  async interruptAndListen() {
     if (!this.isInCall) return;
     this.stopSpeaking();
+    if (this.micError) {
+      // Re-check after the user possibly granted access
+      await this.ensureMicAccess();
+    }
     this.startCallListening();
   }
 
@@ -1148,8 +1240,23 @@ class AIConsultant {
     }, audioSrc);
   }
 
-  speakVoiceCall(text, onComplete, audioSrc = null) {
+  speakVoiceCall(text, onCompleteRaw, audioSrc = null) {
     this.stopSpeaking();
+
+    // Guarantee the completion callback (which re-opens the mic) runs exactly once
+    let finished = false;
+    const onComplete = () => {
+      if (finished) return;
+      finished = true;
+      if (onCompleteRaw) onCompleteRaw();
+    };
+    let fellBack = false;
+    const fallbackToBrowser = () => {
+      if (fellBack) return;
+      fellBack = true;
+      this.currentAudioPlayer = null;
+      this.speakBrowserVoice(text, onComplete);
+    };
 
     // 1. Check if direct audio or pre-rendered neural audio file is available
     let soundSrc = audioSrc;
@@ -1171,15 +1278,14 @@ class AIConsultant {
 
         audio.onerror = (e) => {
           console.warn('Neural audio playback failed, falling back to browser speech:', e);
-          this.currentAudioPlayer = null;
-          this.speakBrowserVoice(text, onComplete);
+          fallbackToBrowser();
         };
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise.catch((err) => {
             console.warn('Audio play prevented, fallback to browser speech:', err);
-            this.speakBrowserVoice(text, onComplete);
+            fallbackToBrowser();
           });
         }
         return;
@@ -1207,15 +1313,22 @@ class AIConsultant {
 
     this.isSpeaking = true;
 
-    utterance.onend = () => {
+    let finished = false;
+    const done = () => {
+      if (finished) return;
+      finished = true;
       this.isSpeaking = false;
+      this.currentUtterance = null;
       if (onComplete) onComplete();
     };
 
-    utterance.onerror = () => {
-      this.isSpeaking = false;
-      if (onComplete) onComplete();
-    };
+    utterance.onend = done;
+    utterance.onerror = done;
+
+    // Chrome bug: onend may never fire (GC'd utterance / long text) -> mic never reopens.
+    // Keep a reference and add a safety timeout based on text length.
+    this.currentUtterance = utterance;
+    this.speechSafetyTimer = setTimeout(done, Math.min(60000, 3000 + clean.length * 90));
 
     window.speechSynthesis.speak(utterance);
   }
